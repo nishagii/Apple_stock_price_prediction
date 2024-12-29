@@ -9,7 +9,16 @@ import os
 def fetch_stock_data(stock_symbol, start_date, end_date):
     print(f"Fetching data for {stock_symbol}...")
     stock_data = yf.download(stock_symbol, start=start_date, end=end_date)
+   
 
+    if isinstance(stock_data.columns, pd.MultiIndex):
+        stock_data.columns = [col[0] for col in stock_data.columns]
+
+    # Print the index of the DataFrame
+    print(stock_data.index)
+
+
+    print(stock_data.columns)
     # Specify the preferred save location
     preferred_save_location = (
         "../data/raw"

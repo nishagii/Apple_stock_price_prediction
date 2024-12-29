@@ -17,7 +17,7 @@ def compute_rsi(data, window=14):
 # Preprocess and Feature Engineer the Data
 def preprocess_data(input_file, output_file):
     # Load data
-    stock_data = pd.read_csv(input_file, index_col="Date", parse_dates=True)
+    stock_data = pd.read_csv(input_file,index_col="Date",parse_dates=True)
 
     # Handle missing values
     stock_data.fillna(method="ffill", inplace=True)
