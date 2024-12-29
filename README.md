@@ -35,7 +35,7 @@ This project aims to analyze and predict stock prices for multiple companies (e.
 ### 1. Clone the Repository
 Clone this repository to your local machine:
 ```bash
-git clone <repository-url>
+git clone (https://github.com/nishagii/Apple_stock_price_prediction.git)
 cd <repository-folder>
 ```
 
@@ -60,7 +60,7 @@ Clean and preprocess the raw data by running:
 ```bash
 python scripts/preprocessing_data.py
 ```
-This will generate preprocessed data files stored in the `data/processed` folder.
+This will generate preprocessed data for the given company and file will be stored in the `data/processed` folder.
 
 ### 5. Model Training
 Train the prediction model using the processed data:
