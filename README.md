@@ -35,7 +35,7 @@ This project aims to analyze and predict stock prices for multiple companies (e.
 ### 1. Clone the Repository
 Clone this repository to your local machine:
 ```bash
-git clone (https://github.com/nishagii/Apple_stock_price_prediction.git)
+git clone https://github.com/nishagii/Apple_stock_price_prediction.git
 cd <repository-folder>
 ```
 
