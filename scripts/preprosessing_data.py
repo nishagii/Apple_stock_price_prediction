@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler
 import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
 
 
 # Define the RSI function
@@ -56,6 +57,29 @@ def preprocess_data(input_file, output_file):
     return stock_data
 
 
+# data splitting
+def split_data(stock_data):
+    # Drop rows with NaN values created during feature engineering
+    stock_data.dropna(inplace=True)
+
+    # Define input features (X) and target variable (y)
+    X = stock_data.drop(columns=["Close"])
+    y = stock_data["Close"]
+
+    # Split data into training and testing sets (80% train, 20% test)
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.2, random_state=42, shuffle=False
+    )
+
+    print("Data splitting completed:")
+    print(f"Training set: {len(X_train)} samples")
+    print(f"Testing set: {len(X_test)} samples")
+    print("Training data shape:", X_train.shape)
+    print("Testing data shape:", X_test.shape)
+
+    return X_train, X_test, y_train, y_test
+
+
 # Plotting Function
 def plot_data(stock_data):
     plt.figure(figsize=(14, 7))
@@ -86,6 +110,9 @@ def plot_data(stock_data):
     plt.show()
 
 
+# Data spliting
+
+
 # Run the script
 if __name__ == "__main__":
     # Input and output file paths
@@ -100,3 +127,12 @@ if __name__ == "__main__":
 
     # Print first few rows for verification
     print(stock_data.head(100))
+
+    # Split data
+    X_train, X_test, y_train, y_test = split_data(stock_data)
+
+    # Print first few rows for verification
+    print("Training data sample:")
+    print(X_train.head())
+    print("\nTesting data sample:")
+    print(X_test.head())
