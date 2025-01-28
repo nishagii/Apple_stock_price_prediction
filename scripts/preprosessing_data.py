@@ -1,8 +1,6 @@
 import pandas as pd
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler
-import matplotlib.pyplot as plt
-from sklearn.model_selection import train_test_split
 
 
 # Define the RSI function
@@ -18,7 +16,7 @@ def compute_rsi(data, window=14):
 # Preprocess and Feature Engineer the Data
 def preprocess_data(input_file, output_file):
     # Load data
-    stock_data = pd.read_csv(input_file,index_col="Date",parse_dates=True)
+    stock_data = pd.read_csv(input_file, index_col="Date", parse_dates=True)
 
     # Handle missing values
     stock_data.fillna(method="ffill", inplace=True)
@@ -34,19 +32,36 @@ def preprocess_data(input_file, output_file):
     )
 
     # Feature Engineering
-    stock_data["SMA_7"] = stock_data["Close"].rolling(window=7).mean()
+   
     stock_data["SMA_30"] = stock_data["Close"].rolling(window=30).mean()
-    stock_data["EMA_7"] = stock_data["Close"].ewm(span=7, adjust=False).mean()
-    stock_data["Volatility_7"] = stock_data["Close"].rolling(window=7).std()
     stock_data["RSI"] = compute_rsi(stock_data["Close"])
-    stock_data["Close_Lag_1"] = stock_data["Close"].shift(1)
-    stock_data["Close_Lag_2"] = stock_data["Close"].shift(2)
     stock_data["Daily_Return"] = stock_data["Close"].pct_change()
+    # Fix Daily_Return: Replace Inf/-Inf with NaN, then fill NaN with 0
+    stock_data["Daily_Return"].replace([np.inf, -np.inf], np.nan, inplace=True)
+    stock_data["Daily_Return"].fillna(0, inplace=True)
     stock_data["EMA_12"] = stock_data["Close"].ewm(span=12, adjust=False).mean()
     stock_data["EMA_26"] = stock_data["Close"].ewm(span=26, adjust=False).mean()
     stock_data["MACD"] = stock_data["EMA_12"] - stock_data["EMA_26"]
     stock_data["Signal_Line"] = stock_data["MACD"].ewm(span=9, adjust=False).mean()
     stock_data["Histogram"] = stock_data["MACD"] - stock_data["Signal_Line"]
+
+    # Now check for feature redundancy using correlation matrix
+    correlation_matrix = stock_data.corr()
+
+    # Set a threshold for high correlation (e.g., 0.8 or -0.8)
+    threshold = 0.8
+
+    # Find pairs of highly correlated features
+    highly_correlated_pairs = []
+    for col in correlation_matrix.columns:
+        for row in correlation_matrix.index:
+            if abs(correlation_matrix.loc[row, col]) > threshold and row != col:
+                highly_correlated_pairs.append((row, col, correlation_matrix.loc[row, col]))
+
+    # Print the highly correlated feature pairs
+    print("Highly Correlated Feature Pairs (|correlation| > 0.8):")
+    for pair in highly_correlated_pairs:
+        print(f"{pair[0]} and {pair[1]}: {pair[2]}")
 
     # Save preprocessed data
     stock_data.to_csv(output_file)
@@ -57,82 +72,8 @@ def preprocess_data(input_file, output_file):
     return stock_data
 
 
-# data splitting
-def split_data(stock_data):
-    # Drop rows with NaN values created during feature engineering
-    stock_data.dropna(inplace=True)
-
-    # Define input features (X) and target variable (y)
-    X = stock_data.drop(columns=["Close"])
-    y = stock_data["Close"]
-
-    # Split data into training and testing sets (80% train, 20% test)
-    X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=0.2, random_state=42, shuffle=False
-    )
-
-    print("Data splitting completed:")
-    print(f"Training set: {len(X_train)} samples")
-    print(f"Testing set: {len(X_test)} samples")
-    print("Training data shape:", X_train.shape)
-    print("Testing data shape:", X_test.shape)
-
-    return X_train, X_test, y_train, y_test
-
-
-# Plotting Function
-def plot_data(stock_data):
-    plt.figure(figsize=(14, 7))
-
-    # Price chart
-    plt.subplot(2, 1, 1)
-    plt.plot(stock_data.index, stock_data["Close"], label="Close Price", color="blue")
-    plt.title("Stock Price")
-    plt.legend()
-
-    # MACD chart
-    plt.subplot(2, 1, 2)
-    plt.plot(stock_data.index, stock_data["MACD"], label="MACD Line", color="green")
-    plt.plot(
-        stock_data.index, stock_data["Signal_Line"], label="Signal Line", color="red"
-    )
-    plt.bar(
-        stock_data.index,
-        stock_data["Histogram"],
-        label="Histogram",
-        color="gray",
-        alpha=0.5,
-    )
-    plt.title("MACD")
-    plt.legend()
-
-    plt.tight_layout()
-    plt.show()
-
-
-# Data spliting
-
-
-# Run the script
+# Example usage
 if __name__ == "__main__":
-    # Input and output file paths
     input_file = "../data/raw/AAPL_stock_data.csv"
     output_file = "../data/processed/AAPL_preprocessed_data.csv"
-
-    # Preprocess data
-    stock_data = preprocess_data(input_file, output_file)
-
-    # Plot data
-    plot_data(stock_data)
-
-    # Print first few rows for verification
-    print(stock_data.head(100))
-
-    # Split data
-    X_train, X_test, y_train, y_test = split_data(stock_data)
-
-    # Print first few rows for verification
-    print("Training data sample:")
-    print(X_train.head())
-    print("\nTesting data sample:")
-    print(X_test.head())
+    preprocess_data(input_file, output_file)
